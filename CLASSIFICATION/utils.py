@@ -203,10 +203,39 @@ def Initial(model):
             m.bias.data = model_before_dict[bias_name]
             idxx = idxx+1
 
-    print('finish loading vgg16 pre-fera2013 model!')
+    print('finish loading vgg16 face model!',model)
     return model
 
+def VGG_Initial(model):
 
+    model_emotion = VGG_Face_torch
+    model_emotion.load_state_dict(torch.load('VGG_Face_torch.pth'))
+    model_before_dict = model_emotion.state_dict()
+
+    table_emotion = [0,2,5,7,10,12,14,17,19,21,24,26,28]
+    print('start loading VGG-Face model...')
+    idx = 0
+    idxx = 0
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d) and idx < len(table_emotion):
+            weight_name = str(table_emotion[idx])+".weight"
+            bias_name   = str(table_emotion[idx])+".bias"
+            assert m.weight.size() == model_before_dict[weight_name].size()
+            assert m.bias.size() == model_before_dict[bias_name].size()
+            m.weight.data = model_before_dict[weight_name]
+            m.bias.data = model_before_dict[bias_name]
+            idx = idx+1
+        if isinstance(m, nn.Linear) and idxx < 1:
+            weight_name = "32.1.weight"
+            bias_name   = "32.1.bias"
+            assert m.weight.size() == model_before_dict[weight_name].size()
+            assert m.bias.size() == model_before_dict[bias_name].size()
+            m.weight.data = model_before_dict[weight_name]
+            m.bias.data = model_before_dict[bias_name]
+            idxx = idxx+1
+
+    print('finish loading VGG-Face model!')
+    return model
 
 def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=50):
     """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
